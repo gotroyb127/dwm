@@ -13,34 +13,46 @@ static const char col_gray3[]       = "#bbbbbb";
 static const char col_gray4[]       = "#eeeeee";
 static const char col_cyan[]        = "#005577";
 static const char *colors[][3]      = {
-	/*               fg         bg         border   */
-	[SchemeNorm] = { col_gray3, col_gray1, col_gray2 },
-	[SchemeSel]  = { col_gray4, col_cyan,  col_cyan  },
+	/*                   fg         bg         border   */
+	[SchemeNorm]     = { NULL,      NULL,      col_gray2 }, /* only border affects */
+	[SchemeSel]      = { NULL,      NULL,      col_cyan  }, /* only border affects */
+	[SchemeStatus]   = { col_gray3, col_gray1, NULL      }, /* Statusbar right (border unused) */
+	[SchemeTagsSel]  = { col_gray4, col_cyan,  NULL      }, /* Tagbar left selected (border unused) */
+	[SchemeTagsNorm] = { col_gray3, col_gray1, NULL      }, /* Tagbar left unselected (border unused) */
+	[SchemeInfoSel]  = { col_gray4, col_cyan,  NULL      }, /* infobar middle selected (border unused) */
+	[SchemeInfoNorm] = { col_gray3, col_gray1, NULL      }, /* infobar middle  unselected (border unused) */
 };
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *vtags[] = { "A", "B", "C" };
 
 static const Rule rules[] = {
 	/* xprop(1):
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask     isfloating   monitor */
-	{ "Gimp",     NULL,       NULL,       0,            1,           -1 },
-	{ "Firefox",  NULL,       NULL,       1 << 8,       0,           -1 },
+	/* class      instance    title       tags mask     isfloating  add2borderw   monitor */
+	{ "Gimp",     NULL,       NULL,       0,            1,          0,            -1 },
+	{ "Firefox",  NULL,       NULL,       1 << 8,       0,          0,            -1 },
 };
 
 /* layout(s) */
 static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] */
+static const int dirs[3]     = { DirRotHor, DirVer, DirVer }; /* tiling dirs */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
+                                        /* for smallmonocle: */
+static const float scalefactorx = 0.70, /* width  = (mon_w) * (mfact ^ scalefactorx) */
+                   scalefactory = 0.0;  /* height = (mon_h) * (mfact ^ scalefactory) */
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
 	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
+	{ "<M>",      smallmonocle },
+	{ "<T>",      centeredtile },
 };
 
 /* key definitions */
@@ -50,6 +62,8 @@ static const Layout layouts[] = {
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+#define TILEKEYS(MOD,G,M,S) \
+	{ MOD, XK_r, setdirs,  {.v = (int[])  { INC(G * +1),   INC(M * +1),   INC(S * +1) } } },
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
@@ -66,24 +80,43 @@ static Key keys[] = {
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
 	{ MODKEY,                       XK_j,      focusstack,     {.i = +1 } },
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
+	{ MODKEY|ShiftMask,             XK_j,      pushdown,       {0} },
+	{ MODKEY|ShiftMask,             XK_k,      pushup,         {0} },
 	{ MODKEY,                       XK_i,      incnmaster,     {.i = +1 } },
 	{ MODKEY,                       XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_h,      setmfact,       {.f = -0.05} },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
+	{ MODKEY|ShiftMask,             XK_l,      setcfact,       {.f = +0.25} },
+	{ MODKEY|ShiftMask,             XK_h,      setcfact,       {.f = -0.25} },
+	{ MODKEY|ShiftMask,             XK_o,      setcfact,       {.f =  0.00} },
 	{ MODKEY,                       XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY|ShiftMask,             XK_c,      killclient,     {0} },
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
 	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY|ShiftMask,             XK_m,      setlayout,      {.v = &layouts[3]} },
+	{ MODKEY|ShiftMask,             XK_t,      setlayout,      {.v = &layouts[4]} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
+	TILEKEYS(MODKEY,                                           1, 0, 0)
+	TILEKEYS(MODKEY|ShiftMask,                                 0, 1, 0)
+	TILEKEYS(MODKEY|ControlMask,                               0, 0, 1)
+	TILEKEYS(MODKEY|ShiftMask|ControlMask,                     1, 1, 1)
 	{ MODKEY|ShiftMask,             XK_space,  togglefloating, {0} },
+	{ MODKEY|ControlMask,           XK_i,      toggleperm,     {0} },
+	{ MODKEY,                       XK_s,      togglesticky,   {0} },
+	{ MODKEY|ShiftMask,             XK_f,      togglefullscr,  {0} },
+	{ MODKEY|ShiftMask,             XK_f,      setlayoutnobar, {.v = &layouts[2]} },
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,                       XK_comma,  focusmon,       {.i = -1 } },
 	{ MODKEY,                       XK_period, focusmon,       {.i = +1 } },
 	{ MODKEY|ShiftMask,             XK_comma,  tagmon,         {.i = -1 } },
 	{ MODKEY|ShiftMask,             XK_period, tagmon,         {.i = +1 } },
+	{ MODKEY|ControlMask,           XK_comma,  focusvtag,      {.i = INC(-1) } },
+	{ MODKEY|ControlMask,           XK_period, focusvtag,      {.i = INC(+1) } },
+	{ MODKEY|ControlMask|ShiftMask, XK_comma,  vtag,           {.i = INC(-1) } },
+	{ MODKEY|ControlMask|ShiftMask, XK_period, vtag,           {.i = INC(+1) } },
 	TAGKEYS(                        XK_1,                      0)
 	TAGKEYS(                        XK_2,                      1)
 	TAGKEYS(                        XK_3,                      2)
@@ -94,6 +127,7 @@ static Key keys[] = {
 	TAGKEYS(                        XK_8,                      7)
 	TAGKEYS(                        XK_9,                      8)
 	{ MODKEY|ShiftMask,             XK_q,      quit,           {0} },
+	{ MODKEY|ControlMask|ShiftMask, XK_q,      quit,           {1} },
 };
 
 /* button definitions */
