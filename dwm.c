@@ -56,7 +56,7 @@
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags] \
                                && C->vtag == C->mon->selvtag) || C->issticky)
 #define LENGTH(X)               (sizeof X / sizeof X[0])
-#define MOD(N,M)                ((N)%(M) < 0 ? (N)%(M) + (M) : (N)%(M))
+#define MOD(N,M)                ((N) % (M) + ((N) % (M) < 0) * (M))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
@@ -843,7 +843,7 @@ drawbar(Monitor *m)
 	int x, w, tw = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
-	unsigned int i, occ = 0, urg = 0, vtoc = 0, vturg = 0;
+	unsigned int i, occ = 0, urg = 0, vtoc[2] = {0}, vturg = 0;
 	Client *c;
 
 	/* draw status first so it can be overdrawn by tags later */
@@ -858,7 +858,7 @@ drawbar(Monitor *m)
 		if (c->vtag == m->selvtag)
 			occ |= c->tags;
 		else
-			vtoc = 1;
+			vtoc[c->vtag > m->selvtag] = 1;
 		if (c->isurgent) {
 			if (c->vtag == m->selvtag)
 				urg |= c->tags;
@@ -880,9 +880,11 @@ drawbar(Monitor *m)
 	w = TEXTW(vtags[m->selvtag]);
 	drw_setscheme(drw, scheme[SchemeTagsNorm]);
 	drw_text(drw, x, 0, w, bh, lrpad / 2, vtags[m->selvtag], vturg);
-	if (vtoc)
+	if (vtoc[0])
 		drw_rect(drw, x + boxs, boxs, boxw, boxw, 0, 0);
 	x += w;
+	if (vtoc[1])
+		drw_rect(drw, x - boxw -1, boxs, boxw, boxw, 0, 0);
 
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeTagsNorm]);
@@ -1002,7 +1004,8 @@ focusvtag(const Arg *arg)
 	selmon->pervtag->seltags[selmon->selvtag] = selmon->seltags;
 
 	if (ISINC(arg->i))
-		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i), LENGTH(vtags));
+		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i),
+		                      (int)LENGTH(vtags));
 	else
 		selmon->selvtag = MOD(arg->i, LENGTH(vtags));
 
@@ -2535,7 +2538,8 @@ vtag(const Arg *arg)
 	if (!selmon->sel)
 		return;
 	if (ISINC(arg->i))
-		selmon->sel->vtag = MOD((int)selmon->sel->vtag + GETINC(arg->i), LENGTH(vtags));
+		selmon->sel->vtag = MOD((int)selmon->sel->vtag + GETINC(arg->i),
+		                        (int)LENGTH(vtags));
 	else
 		selmon->sel->vtag = MOD(arg->i, LENGTH(vtags));
 	focus(NULL);

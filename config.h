@@ -28,7 +28,7 @@ static const char *colors[][3]      = {
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-static const char *vtags[] = { "A", "B" };
+static const char *vtags[] = { "Α", "Β", "Γ" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -251,6 +251,7 @@ static Button buttons[] = {
 	{ ClkClientWin,         MODKEY,           Button5,        pushdown,       {0} },
 	{ ClkVTagBar,           0,                Button1,        focusvtag,      {.i = 0} } ,
 	{ ClkVTagBar,           0,                Button3,        focusvtag,      {.i = 1} },
+	{ ClkVTagBar,           0,                Button2,        focusvtag,      {.i = 2} },
 	{ ClkVTagBar,           0,                Button4,        focusvtag,      {.i = INC(-1)} } ,
 	{ ClkVTagBar,           0,                Button5,        focusvtag,      {.i = INC(+1)} },
 	{ ClkTagBar,            0,                Button1,        view,           {0} },
