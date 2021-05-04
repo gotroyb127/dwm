@@ -42,9 +42,11 @@ static const float mfact     = 0.55; /* factor of master area size [0.05..0.95] 
 static const int dirs[3]     = { DirRotHor, DirVer, DirVer }; /* tiling dirs */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
-                                        /* for smallmonocle: */
-static const float scalefactorx = 0.70, /* width  = (mon_w) * (mfact ^ scalefactorx) */
-                   scalefactory = 0.0;  /* height = (mon_h) * (mfact ^ scalefactory) */
+
+/* macros for smallmonocle. values at [0, 1.0] (see dwm.c:^smallmonocle) */
+#include <math.h>
+#define SM_X_FACT(mfact) pow(mfact, 0.7)
+#define SM_Y_FACT(mfact) (1.0)
 
 static const Layout layouts[] = {
 	/* symbol     arrange function */
@@ -72,6 +74,9 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
 static const char *termcmd[]  = { "st", NULL };
+static char statusbtn[2] = "0";   /* components of statuscmd, manipulated in */
+static char statusblkn[3] = "00"; /* buttonpress() */
+static const char *statuscmd[] = { "STATUS_button", statusbtn, statusblkn, NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -131,7 +136,7 @@ static Key keys[] = {
 };
 
 /* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
+/* click can be ClkTagBar, ClkVTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },

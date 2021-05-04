@@ -62,6 +62,8 @@
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define RTEXTW(X)               drw_fontset_getwidth(drw, (X))
+#define STEXTW                  (TEXTW(stext) - lrpad + 2)
 #define TRUNC(X,A,B)            ((X) < (A) ? (A) : (X) > (B) ? (B) : (X))
 
 /* enums */
@@ -278,6 +280,7 @@ static void zoom(const Arg *arg);
 /* variables */
 static const char broken[] = "broken";
 static char stext[256];
+static int statusw[16];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh, blw = 0;      /* bar geometry */
@@ -481,6 +484,7 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
+	int dx;
 	unsigned int i, x, click;
 	Arg arg = {0};
 	Client *c;
@@ -506,9 +510,12 @@ buttonpress(XEvent *e)
 			click = ClkVTagBar;
 		else if (ev->x < x + blw)
 			click = ClkLtSymbol;
-		else if (ev->x > selmon->ww - (int)TEXTW(stext))
+		else if ((dx = ev->x - (selmon->ww - (int)STEXTW)) > 0) {
 			click = ClkStatusText;
-		else
+			statusbtn[0] = '0' + ev->button;
+			for (i = 0; statusw[i] >= 0 && (dx -= statusw[i]) >= 0; i++);
+			snprintf(statusblkn, sizeof statusblkn, "%d", i);
+		} else
 			click = ClkWinTitle;
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
@@ -606,6 +613,7 @@ cleanup(void)
 		drw_cur_free(drw, cursor[i]);
 	for (i = 0; i < LENGTH(colors); i++)
 		free(scheme[i]);
+	free(scheme);
 	XDestroyWindow(dpy, wmcheckwin);
 	drw_free(drw);
 	XSync(dpy, False);
@@ -849,7 +857,7 @@ drawbar(Monitor *m)
 	/* draw status first so it can be overdrawn by tags later */
 	if (m == selmon) { /* status is only drawn on selected monitor */
 		drw_setscheme(drw, scheme[SchemeStatus]);
-		tw = TEXTW(stext) - lrpad + 2; /* 2px right padding */
+		tw = STEXTW;
 		drw_text(drw, m->ww - tw, 0, tw, bh, 0, stext, 0);
 	}
 
@@ -1999,17 +2007,19 @@ smallmonocle(Monitor *m)
 void
 spawn(const Arg *arg)
 {
+	if (fork())
+		return;
+
 	if (arg->v == dmenucmd)
 		dmenumon[0] = '0' + selmon->num;
-	if (fork() == 0) {
-		if (dpy)
-			close(ConnectionNumber(dpy));
-		setsid();
-		execvp(((char **)arg->v)[0], (char **)arg->v);
-		fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
-		perror(" failed");
-		exit(EXIT_SUCCESS);
-	}
+
+	if (dpy)
+		close(ConnectionNumber(dpy));
+	setsid();
+	execvp(((char **)arg->v)[0], (char **)arg->v);
+	fprintf(stderr, "dwm: execvp %s", ((char **)arg->v)[0]);
+	perror(" failed");
+	exit(EXIT_SUCCESS);
 }
 
 void
@@ -2449,8 +2459,22 @@ updatesizehints(Client *c)
 void
 updatestatus(void)
 {
-	if (!gettextprop(root, XA_WM_NAME, stext, sizeof(stext)))
+	int i;
+	char *p, *c, *t;
+	char tmptxt[sizeof stext];
+
+	if (!gettextprop(root, XA_WM_NAME, tmptxt, sizeof tmptxt))
 		strcpy(stext, "dwm-"VERSION);
+	for (p = tmptxt, t = stext, i = 0;
+	     (c = strchr(p, '\1')) || (c = strchr(p, '\0')) != p;
+	     p = c + 1, i++) {
+		c[0] = '\0';
+		strcpy(t, p);
+		t = strchr(t, '\0');
+		if (i < LENGTH(statusw))
+			statusw[i] = RTEXTW(p);
+	}
+	statusw[MIN(i, LENGTH(statusw))] = -1;
 	drawbar(selmon);
 }
 

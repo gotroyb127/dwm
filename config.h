@@ -83,6 +83,9 @@ static const Layout layouts[] = {
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
 static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, NULL };
 static const char *termcmd[]  = { "st", "tmux.sh", NULL };
+static char statusbtn[2] = "0";   /* components of statuscmd, manipulated in */
+static char statusblkn[3] = "00"; /* buttonpress() */
+static const char *statuscmd[] = { "STATUS_button", statusbtn, statusblkn, NULL };
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
@@ -223,8 +226,12 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_c,            spawn,          SHCMD("xcalib -o 1 -i -a") },
 };
 
+/* not defined in included header files */
+#define Button8 8
+#define Button9 9
+
 /* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
+/* click can be ClkTagBar, ClkVTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
 	/* click                event mask        button          function        argument */
 	{ ClkLtSymbol,          MODKEY,           Button1,        setlayout,      {0} },
@@ -233,8 +240,8 @@ static Button buttons[] = {
 	{ ClkLtSymbol,          0,                Button3,        setlayout,      {.v = &layouts[SmallMonocle]} },
 	{ ClkLtSymbol,          0,                Button4,        setlayout,      {.v = &layouts[Monocle]} },
 	{ ClkLtSymbol,          0,                Button5,        setlayout,      {.v = &layouts[CenteredMaster]} },
-	{ ClkLtSymbol,          0,                      9,        setlayout,      {.v = &layouts[Monocle]} },
-	{ ClkLtSymbol,          0,                      8,        setlayout,      {.v = &layouts[CenteredMaster]} },
+	{ ClkLtSymbol,          0,                Button9,        setlayout,      {.v = &layouts[Monocle]} },
+	{ ClkLtSymbol,          0,                Button8,        setlayout,      {.v = &layouts[CenteredMaster]} },
 	{ ClkRootWin,           0,                Button4,        togglebar,      {0} },
 	{ ClkRootWin,           0,                Button5,        togglebar,      {0} },
 	{ ClkWinTitle,          0,                Button2,        setmfact,       {.f = 1.5} },
@@ -243,7 +250,14 @@ static Button buttons[] = {
 	{ ClkWinTitle,          MODKEY,           Button3,        setcfact,       {.f =  0.00} },
 	{ ClkWinTitle,          MODKEY,           Button4,        setcfact,       {.f = +0.25} },
 	{ ClkWinTitle,          MODKEY,           Button5,        setcfact,       {.f = -0.25} },
-	{ ClkStatusText,        0,                Button2,        spawn,          SHCMD("xfce4-appfinder") },
+	{ ClkStatusText,        0,                Button1,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button2,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button3,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button4,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button5,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button5,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button8,        spawn,          {.v = statuscmd} },
+	{ ClkStatusText,        0,                Button9,        spawn,          {.v = statuscmd} },
 	{ ClkClientWin,         MODKEY,           Button1,        movemouse,      {0} },
 	{ ClkClientWin,         MODKEY,           Button2,        zoom,           {0} },
 	{ ClkClientWin,         MODKEY|ShiftMask, Button2,        togglefloating, {0} },
