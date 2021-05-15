@@ -892,7 +892,7 @@ drawbar(Monitor *m)
 		drw_rect(drw, x + boxs, boxs, boxw, boxw, 0, 0);
 	x += w;
 	if (vtoc[1])
-		drw_rect(drw, x - boxw -1, boxs, boxw, boxw, 0, 0);
+		drw_rect(drw, x - boxw - boxs, boxs, boxw, boxw, 0, 0);
 
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeTagsNorm]);
