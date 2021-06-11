@@ -36,8 +36,7 @@ static const Rule rules[] = {
 	 *	WM_NAME(STRING) = title
 	 */
 	/* class      instance    title       tags mask  isfloating  add2borderw  monitor */
-	{ "teeworlds", NULL,      NULL,       0,         0,          -borderpx,   -1 },
-	{ "DDNet",    NULL,       NULL,       0,         0,          -borderpx,   -1 },
+	{ NULL,       NULL,       NULL,       0,         0,          0,           -1 },
 };
 
 /* layout(s) */
