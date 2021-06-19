@@ -2064,7 +2064,7 @@ tile(Monitor *m)
 		return;
 	if (n == 1) {
 		smallmonocle(m);
-		ltsymbf(m, "'%s'");
+		ltsymbf(m, "|%s|");
 		return;
 	}
 
