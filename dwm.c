@@ -1826,10 +1826,10 @@ setcfact(const Arg *arg)
 
 	if (!arg || !c || !selmon->lt[selmon->sellt]->arrange)
 		return;
-	f = arg->f + c->cfact;
+	f = arg->f * c->cfact;
 	if (arg->f == 0.0)
 		f = 1.0;
-	else if (f < 0.25 || f > 5.0)
+	else if (f < 0x1P-4 || f > 0x1P4)
 		return;
 	c->cfact = f;
 	arrange(selmon);
