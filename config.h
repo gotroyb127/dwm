@@ -219,6 +219,8 @@ static Key keys[] = {
 	{ MODKEY|MODKEY2,               XK_s,        spawn,  SHCMD("firefox.sh 0") },
 	{ MODKEY|MODKEY2,               XK_a,        spawn,  SHCMD("firefox.sh 1") },
 	{ MODKEY|MODKEY2,               XK_d,        spawn,  SHCMD("firefox.sh p") },
+	{ MODKEY|MODKEY2|ControlMask,   XK_s,        spawn,  SHCMD("firefox.sh 2") },
+	{ MODKEY|MODKEY2|ControlMask,   XK_d,        spawn,  SHCMD("firefox.sh 3") },
 	{ MODKEY|MODKEY2|ControlMask,   XK_a,        spawn,  SHCMD("firefox.sh -P") },
 	{ MODKEY,                       XK_Print,    spawn,  SHCMD("PrintScreen") },
 	{ MODKEY|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w") },
