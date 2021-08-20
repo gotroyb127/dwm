@@ -1571,10 +1571,9 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldw = c->w; c->w = wc.width = w;
 	c->oldh = c->h; c->h = wc.height = h;
 	wc.border_width = c->bw;
-	if (((nexttiled(c->mon->clients) == c && !nexttiled(c->next))
-	|| &monocle      == c->mon->lt[c->mon->sellt]->arrange
-	|| &smallmonocle == c->mon->lt[c->mon->sellt]->arrange)
-	&& !c->isfloating) {
+	if (!c->isfloating && ((nexttiled(c->mon->clients) == c && !nexttiled(c->next))
+	|| c->mon->lt[c->mon->sellt]->arrange == &monocle
+	|| c->mon->lt[c->mon->sellt]->arrange == &smallmonocle)) {
 		c->w = wc.width += c->bw * 2;
 		c->h = wc.height += c->bw * 2;
 		wc.border_width = 0;
@@ -1785,10 +1784,17 @@ setfullscreen(Client *c, int fullscreen)
 		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
 			PropModeReplace, (unsigned char*)&netatom[NetWMFullscreen], 1);
 		c->isfullscreen = 1;
+		/* don't apply border on fullscreen windows that fill the screen */
+		if (c->w == c->mon->mw && c->h == c->mon->mh) {
+			c->oldbw = c->bw;
+			c->bw = 0;
+		}
 	} else if (!fullscreen && c->isfullscreen) {
 		XChangeProperty(dpy, c->win, netatom[NetWMState], XA_ATOM, 32,
 			PropModeReplace, (unsigned char*)0, 0);
 		c->isfullscreen = 0;
+		if (c->bw == 0)
+			c->bw = c->oldbw;
 	}
 }
 
@@ -2306,7 +2312,7 @@ updatebarpos(Monitor *m)
 }
 
 void
-updateclientlist()
+updateclientlist(void)
 {
 	Client *c;
 	Monitor *m;
