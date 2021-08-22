@@ -35,8 +35,8 @@ static const Rule rules[] = {
 	 *	WM_CLASS(STRING) = instance, class
 	 *	WM_NAME(STRING) = title
 	 */
-	/* class      instance    title       tags mask  isfloating  add2borderw  monitor */
-	{ NULL,       NULL,       NULL,       0,         0,          0,           -1 },
+	/* class      instance    title       tags mask  isfloating  isfakefullscreen add2borderw  monitor */
+	{ NULL,       NULL,       NULL,       0,         0,          1,               0,           -1 },
 };
 
 /* layout(s) */
