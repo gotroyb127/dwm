@@ -139,7 +139,7 @@ struct Monitor {
 	int num;
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
-	int wx, wy, ww, wh;   /* window area  */
+	int wx, wy, ww, wh;   /* window area */
 	unsigned int seltags;
 	unsigned int selvtag;
 	unsigned int sellt;
@@ -323,7 +323,7 @@ struct Pertag {
 	float mfacts[LENGTH(tags) + 1]; /* mfacts per tag */
 	Area areas[LENGTH(tags) + 1][3]; /* tiling areas */
 	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
-	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
+	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
 
@@ -537,7 +537,7 @@ centeredmaster(Monitor *m)
 	unsigned int i, updatesymb;
 	Client *c;
 	Area *ma = m->pertag->areas[m->pertag->curtag] + 1,
-	     *sal = ma + 1, tmp = *sal, *sar = &tmp;
+		*sal = ma + 1, tmp = *sal, *sar = &tmp;
 
 	ma->fact = sal->fact = sar->fact = 0;
 	ma->cx = ma->cy = sar->cx = sar->cy = sal->cx = sal->cy = 0;
@@ -651,7 +651,7 @@ clientmessage(XEvent *e)
 	if (cme->message_type == netatom[NetWMState]) {
 		if (cme->data.l[1] == netatom[NetWMFullscreen]
 		|| cme->data.l[2] == netatom[NetWMFullscreen])
-			setfullscreen(c, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
+			setfullscreen(c, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD */
 				|| (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */
 				&& (!c->isfullscreen || c->isfakefullscreen))));
 	} else if (cme->message_type == netatom[NetActiveWindow]) {
@@ -1020,7 +1020,7 @@ focusvtag(const Arg *arg)
 
 	if (ISINC(arg->i))
 		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i),
-		                      (int)LENGTH(vtags));
+			(int)LENGTH(vtags));
 	else
 		selmon->selvtag = MOD(arg->i, LENGTH(vtags));
 
@@ -2504,8 +2504,8 @@ updatestatus(void)
 	if (!gettextprop(root, XA_WM_NAME, tmptxt, sizeof tmptxt))
 		strcpy(stext, "dwm-"VERSION);
 	for (p = tmptxt, t = stext, i = 0;
-	     (c = strchr(p, '\1')) || (c = strchr(p, '\0')) != p;
-	     p = c + 1, i++) {
+	    (c = strchr(p, '\1')) || (c = strchr(p, '\0')) != p;
+	    p = c + 1, i++) {
 		c[0] = '\0';
 		strcpy(t, p);
 		t = strchr(t, '\0');
@@ -2601,7 +2601,7 @@ vtag(const Arg *arg)
 		return;
 	if (ISINC(arg->i))
 		selmon->sel->vtag = MOD((int)selmon->sel->vtag + GETINC(arg->i),
-		                        (int)LENGTH(vtags));
+			(int)LENGTH(vtags));
 	else
 		selmon->sel->vtag = MOD(arg->i, LENGTH(vtags));
 	focus(NULL);
