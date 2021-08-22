@@ -117,7 +117,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_n,            setlayout,      {.v = &layouts[SmallMonocle]} },
 	{ MODKEY,                       XK_c,            setlayout,      {.v = &layouts[CenteredMaster]} },
 	{ MODKEY,                       XK_f,            setlayoutnobar, {.v = &layouts[Monocle]} },
-	{ MODKEY|ShiftMask,             XK_f,            setlayoutnobar, {.v = &layouts[SmallMonocle]} },
+	{ MODKEY|ControlMask,           XK_f,            setlayoutnobar, {.v = &layouts[SmallMonocle]} },
 	TILEKEYS(MODKEY,                       XK_r,                     1, 0, 0)
 	TILEKEYS(MODKEY|ControlMask,           XK_r,                     0, 1, 0)
 	TILEKEYS(MODKEY|ShiftMask,             XK_r,                     0, 0, 1)
