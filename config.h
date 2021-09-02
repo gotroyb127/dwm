@@ -37,6 +37,7 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask  isfloating  isfakefullscreen add2borderw  monitor */
 	{ NULL,       NULL,       NULL,       0,         0,          1,               0,           -1 },
+	{ "csgo_linux64", "csgo_linux64", 0,  0,         0,          0,               0,           -1 },
 };
 
 /* layout(s) */
@@ -117,7 +118,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_n,            setlayout,      {.v = &layouts[SmallMonocle]} },
 	{ MODKEY,                       XK_c,            setlayout,      {.v = &layouts[CenteredMaster]} },
 	{ MODKEY,                       XK_f,            setlayoutnobar, {.v = &layouts[Monocle]} },
-	{ MODKEY|ControlMask,           XK_f,            setlayoutnobar, {.v = &layouts[SmallMonocle]} },
+	{ MODKEY|ShiftMask,             XK_f,            setlayoutnobar, {.v = &layouts[SmallMonocle]} },
 	TILEKEYS(MODKEY,                       XK_r,                     1, 0, 0)
 	TILEKEYS(MODKEY|ControlMask,           XK_r,                     0, 1, 0)
 	TILEKEYS(MODKEY|ShiftMask,             XK_r,                     0, 0, 1)
