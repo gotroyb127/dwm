@@ -70,6 +70,9 @@ static const Layout layouts[] = {
 	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+#define VTAGKEYS(KEY, VTAG) \
+	{ MODKEY|MODKEY2,               KEY,      focusvtag,      {.i = VTAG} }, \
+	{ MODKEY|MODKEY2|ShiftMask,     KEY,      vtag,           {.i = VTAG} },
 #define TILEKEYS(MOD,KEY,G,M,S) \
 	{ MOD, KEY, setdirs, {.v = (int[]) { INC(G * +1), INC(M * +1), INC(S * +1) } } },
 
@@ -104,8 +107,8 @@ static Key keys[] = {
 	{ MODKEY|ControlMask,           XK_o,            setmfact,       {.f = 1.33} },
 	{ MODKEY|ShiftMask,             XK_l,            setcfact,       {.f = 2.0} },
 	{ MODKEY|ShiftMask,             XK_h,            setcfact,       {.f = 0.5} },
-	{ MODKEY|ShiftMask|ControlMask, XK_l,            setcfact,       {.f = 1.5} },
-	{ MODKEY|ShiftMask|ControlMask, XK_h,            setcfact,       {.f = 0.66} },
+	{ MODKEY|ShiftMask|ControlMask, XK_l,            setcfact,       {.f = 1.25} },
+	{ MODKEY|ShiftMask|ControlMask, XK_h,            setcfact,       {.f = 0.8} },
 	{ MODKEY|ShiftMask,             XK_o,            setcfact,       {.f =  0.0} },
 	{ MODKEY,                       XK_z,            zoom,           {0} },
 	{ MODKEY|ShiftMask,             XK_Return,       zoom,           {0} },
@@ -151,6 +154,15 @@ static Key keys[] = {
 	TAGKEYS(                        XK_7,                            6)
 	TAGKEYS(                        XK_8,                            7)
 	TAGKEYS(                        XK_9,                            8)
+	VTAGKEYS(                       XK_1,                            0)
+	VTAGKEYS(                       XK_2,                            1)
+	VTAGKEYS(                       XK_3,                            2)
+	VTAGKEYS(                       XK_4,                            3)
+	VTAGKEYS(                       XK_5,                            4)
+	VTAGKEYS(                       XK_6,                            5)
+	VTAGKEYS(                       XK_7,                            6)
+	VTAGKEYS(                       XK_8,                            7)
+	VTAGKEYS(                       XK_9,                            8)
 	{ MODKEY|ShiftMask,             XK_e,            quit,           {0} },
 	{ MODKEY|ShiftMask|ControlMask, XK_e,            quit,           {1} },
 
@@ -223,8 +235,8 @@ static Key keys[] = {
 	{ MODKEY|MODKEY2|ControlMask,   XK_s,        spawn,  SHCMD("firefox.sh 2") },
 	{ MODKEY|MODKEY2|ControlMask,   XK_d,        spawn,  SHCMD("firefox.sh 3") },
 	{ MODKEY|MODKEY2|ControlMask,   XK_a,        spawn,  SHCMD("firefox.sh -P") },
-	{ MODKEY,                       XK_Print,    spawn,  SHCMD("PrintScreen") },
-	{ MODKEY|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w") },
+	{ MODKEY,                       XK_Print,    spawn,  SHCMD("PrintScreen ~/Screenshots") },
+	{ MODKEY|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w ~/Screenshots") },
 	{ MODKEY|MODKEY2,               XK_p,        spawn,  SHCMD("xfce4-appfinder") },
 	{ MODKEY|ControlMask,           XK_c,        spawn,  SHCMD("xcalib -o 1 -i -a") },
 };

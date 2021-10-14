@@ -1018,11 +1018,15 @@ focusvtag(const Arg *arg)
 	/* save current settings */
 	selmon->pervtag->seltags[selmon->selvtag] = selmon->seltags;
 
-	if (ISINC(arg->i))
+	if (ISINC(arg->i)) {
 		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i),
 			(int)LENGTH(vtags));
-	else
-		selmon->selvtag = MOD(arg->i, LENGTH(vtags));
+	} else {
+		if (arg->i < 0 || arg->i >= LENGTH(vtags))
+			return;
+		else
+			selmon->selvtag = arg->i;
+	}
 
 	if (curr == selmon->selvtag)
 		return;
@@ -2599,11 +2603,15 @@ vtag(const Arg *arg)
 {
 	if (!selmon->sel)
 		return;
-	if (ISINC(arg->i))
+	if (ISINC(arg->i)) {
 		selmon->sel->vtag = MOD((int)selmon->sel->vtag + GETINC(arg->i),
 			(int)LENGTH(vtags));
-	else
-		selmon->sel->vtag = MOD(arg->i, LENGTH(vtags));
+	} else {
+		if (arg->i < 0 || arg->i >= LENGTH(vtags))
+			return;
+		else
+			selmon->sel->vtag = arg->i;
+	}
 	focus(NULL);
 	arrange(selmon);
 }
