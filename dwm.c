@@ -195,7 +195,6 @@ static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
-static void focusvtag(const Arg *arg);
 static void focusstack(const Arg *arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -270,6 +269,7 @@ static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
+static void viewvtag(const Arg *arg);
 static void vtag(const Arg *arg);
 static Client *wintoclient(Window w);
 static Monitor *wintomon(Window w);
@@ -1008,45 +1008,6 @@ focusmon(const Arg *arg)
 	unfocus(selmon->sel, 0);
 	selmon = m;
 	focus(NULL);
-}
-
-void
-focusvtag(const Arg *arg)
-{
-	unsigned int curr = selmon->selvtag;
-
-	/* save current settings */
-	selmon->pervtag->seltags[selmon->selvtag] = selmon->seltags;
-
-	if (ISINC(arg->i)) {
-		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i),
-			(int)LENGTH(vtags));
-	} else {
-		if (arg->i < 0 || arg->i >= LENGTH(vtags))
-			return;
-		else
-			selmon->selvtag = arg->i;
-	}
-
-	if (curr == selmon->selvtag)
-		return;
-
-	/* load saved settings from pervtag */
-	selmon->pertag = &selmon->pervtag->pertags[selmon->selvtag];
-	selmon->tagset = selmon->pervtag->tagsets[selmon->selvtag];
-	selmon->seltags = selmon->pervtag->seltags[selmon->selvtag];
-
-	/* load saved settings from pertag, same as in view() */
-	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
-	selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
-	selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
-	selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt];
-	selmon->lt[selmon->sellt^1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt^1];
-
-	if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
-		togglebar(NULL);
-	focus(NULL);
-	arrange(selmon);
 }
 
 void
@@ -2586,6 +2547,45 @@ view(const Arg *arg)
 	}
 
 	/* apply settings for this view */
+	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
+	selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
+	selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
+	selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt];
+	selmon->lt[selmon->sellt^1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt^1];
+
+	if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
+		togglebar(NULL);
+	focus(NULL);
+	arrange(selmon);
+}
+
+void
+viewvtag(const Arg *arg)
+{
+	unsigned int curr = selmon->selvtag;
+
+	/* save current settings */
+	selmon->pervtag->seltags[selmon->selvtag] = selmon->seltags;
+
+	if (ISINC(arg->i)) {
+		selmon->selvtag = MOD((int)selmon->selvtag + GETINC(arg->i),
+			(int)LENGTH(vtags));
+	} else {
+		if (arg->i < 0 || arg->i >= LENGTH(vtags))
+			return;
+		else
+			selmon->selvtag = arg->i;
+	}
+
+	if (curr == selmon->selvtag)
+		return;
+
+	/* load saved settings from pervtag */
+	selmon->pertag = &selmon->pervtag->pertags[selmon->selvtag];
+	selmon->tagset = selmon->pervtag->tagsets[selmon->selvtag];
+	selmon->seltags = selmon->pervtag->seltags[selmon->selvtag];
+
+	/* load saved settings from pertag, same as in view() */
 	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
 	selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
 	selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];

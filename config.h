@@ -28,7 +28,7 @@ static const char *colors[][3]      = {
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-static const char *vtags[] = { "Α", "Β", "Γ" };
+static const char *vtags[] = { "Α", "Β", "Γ", "Δ" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -71,7 +71,7 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
 #define VTAGKEYS(KEY, VTAG) \
-	{ MODKEY|MODKEY2,               KEY,      focusvtag,      {.i = VTAG} }, \
+	{ MODKEY|MODKEY2,               KEY,      viewvtag,       {.i = VTAG} }, \
 	{ MODKEY|MODKEY2|ShiftMask,     KEY,      vtag,           {.i = VTAG} },
 #define TILEKEYS(MOD,KEY,G,M,S) \
 	{ MOD, KEY, setdirs, {.v = (int[]) { INC(G * +1), INC(M * +1), INC(S * +1) } } },
@@ -139,8 +139,8 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period,       focusmon,       {.i = +1} },
 	{ MODKEY|ShiftMask,             XK_comma,        tagmon,         {.i = -1} },
 	{ MODKEY|ShiftMask,             XK_period,       tagmon,         {.i = +1} },
-	{ MODKEY|ControlMask,           XK_comma,        focusvtag,      {.i = INC(-1)} },
-	{ MODKEY|ControlMask,           XK_period,       focusvtag,      {.i = INC(+1)} },
+	{ MODKEY|ControlMask,           XK_comma,        viewvtag,       {.i = INC(-1)} },
+	{ MODKEY|ControlMask,           XK_period,       viewvtag,       {.i = INC(+1)} },
 	{ MODKEY|ControlMask|ShiftMask, XK_comma,        vtag,           {.i = INC(-1)} },
 	{ MODKEY|ControlMask|ShiftMask, XK_period,       vtag,           {.i = INC(+1)} },
 	{ MODKEY,                       XK_0,            view,           {.ui = ~0} },
@@ -280,11 +280,11 @@ static Button buttons[] = {
 	{ ClkClientWin,   MODKEY,           Button5,  focusstack,     {.i = -1} },
 	{ ClkClientWin,   MODKEY|ShiftMask, Button4,  pushup,         {0} },
 	{ ClkClientWin,   MODKEY|ShiftMask, Button5,  pushdown,       {0} },
-	{ ClkVTagBar,     0,                Button1,  focusvtag,      {.i = 0} } ,
-	{ ClkVTagBar,     0,                Button3,  focusvtag,      {.i = 1} },
-	{ ClkVTagBar,     0,                Button2,  focusvtag,      {.i = 2} },
-	{ ClkVTagBar,     0,                Button4,  focusvtag,      {.i = INC(-1)} } ,
-	{ ClkVTagBar,     0,                Button5,  focusvtag,      {.i = INC(+1)} },
+	{ ClkVTagBar,     0,                Button1,  viewvtag,       {.i = 0} } ,
+	{ ClkVTagBar,     0,                Button3,  viewvtag,       {.i = 1} },
+	{ ClkVTagBar,     0,                Button2,  viewvtag,       {.i = 2} },
+	{ ClkVTagBar,     0,                Button4,  viewvtag,       {.i = INC(-1)} } ,
+	{ ClkVTagBar,     0,                Button5,  viewvtag,       {.i = INC(+1)} },
 	{ ClkTagBar,      0,                Button1,  view,           {0} },
 	{ ClkTagBar,      0,                Button3,  toggleview,     {0} },
 	{ ClkTagBar,      MODKEY,           Button1,  tag,            {0} },
