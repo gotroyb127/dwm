@@ -53,8 +53,8 @@
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define ISINC(X)                ((X) > 1000 && (X) < 3000)
-#define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags] \
-                               && C->vtags & (1 << C->mon->selvtag)) || C->issticky)
+#define ISVISIBLE(C)            (C->tags & C->mon->tagset[C->mon->seltags] \
+                               && C->vtags & (1 << C->mon->selvtag))
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOD(N,M)                ((N) % (M) + ((N) % (M) < 0) * (M))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
@@ -112,7 +112,7 @@ struct Client {
 	int bw, oldbw;
 	unsigned int tags, vtags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate,
-		isfullscreen, isfakefullscreen, isperm, issticky;
+		isfullscreen, isfakefullscreen, isperm;
 	Client *next;
 	Client *snext;
 	Monitor *mon;
@@ -253,7 +253,6 @@ static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void togglefullscr(const Arg *arg);
 static void toggleperm(const Arg *arg);
-static void togglesticky(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void togglevtag(const Arg *arg);
 static void toggleview(const Arg *arg);
@@ -920,8 +919,6 @@ drawbar(Monitor *m)
 				drw_rect(drw, x + boxs, 0, boxw, boxw, m->sel->isfixed, 0);
 			if (m->sel->isperm)
 				drw_rect(drw, x + boxs, (bh / 3) + 1, boxw, boxw, 1, 0);
-			if (m->sel->issticky)
-				drw_rect(drw, x + boxs, 2*(bh / 3 + 1), boxw, boxw, 0, 0);
 		} else {
 			drw_setscheme(drw, scheme[SchemeInfoNorm]);
 			drw_rect(drw, x, 0, w, bh, 1, 1);
@@ -2164,16 +2161,6 @@ toggleperm(const Arg *arg)
 	if (selmon->sel)
 		selmon->sel->isperm ^= 1;
 	drawbar(selmon);
-}
-
-void
-togglesticky(const Arg *arg)
-{
-	if (!selmon->sel)
-		return;
-	selmon->sel->issticky ^= 1;
-	focus(NULL);
-	arrange(selmon);
 }
 
 void
