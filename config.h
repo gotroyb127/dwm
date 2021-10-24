@@ -66,13 +66,14 @@ static const Layout layouts[] = {
 #define MODKEY  Mod4Mask
 #define MODKEY2 Mod1Mask
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask,           KEY,      toggleview,     {.ui = 1 << TAG} }, \
-	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask|ShiftMask, KEY,      toggletag,      {.ui = 1 << TAG} },
+	{ MODKEY,                                KEY,  view,        {.ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask,                    KEY,  toggleview,  {.ui = 1 << TAG} }, \
+	{ MODKEY|ShiftMask,                      KEY,  tag,         {.ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask|ShiftMask,          KEY,  toggletag,   {.ui = 1 << TAG} },
 #define VTAGKEYS(KEY, VTAG) \
-	{ MODKEY|MODKEY2,               KEY,      viewvtag,       {.i = VTAG} }, \
-	{ MODKEY|MODKEY2|ShiftMask,     KEY,      vtag,           {.i = VTAG} },
+	{ MODKEY|MODKEY2,                        KEY,  viewvtag,    {.i = VTAG} }, \
+	{ MODKEY|MODKEY2|ShiftMask,              KEY,  vtag,        {.ui = 1 << VTAG} }, \
+	{ MODKEY|MODKEY2|ControlMask|ShiftMask,  KEY,  togglevtag,  {.ui = 1 << VTAG} },
 #define TILEKEYS(MOD,KEY,G,M,S) \
 	{ MOD, KEY, setdirs, {.v = (int[]) { INC(G * +1), INC(M * +1), INC(S * +1) } } },
 
@@ -141,8 +142,6 @@ static Key keys[] = {
 	{ MODKEY|ShiftMask,             XK_period,       tagmon,         {.i = +1} },
 	{ MODKEY|ControlMask,           XK_comma,        viewvtag,       {.i = INC(-1)} },
 	{ MODKEY|ControlMask,           XK_period,       viewvtag,       {.i = INC(+1)} },
-	{ MODKEY|ControlMask|ShiftMask, XK_comma,        vtag,           {.i = INC(-1)} },
-	{ MODKEY|ControlMask|ShiftMask, XK_period,       vtag,           {.i = INC(+1)} },
 	{ MODKEY,                       XK_0,            view,           {.ui = ~0} },
 	{ MODKEY|ShiftMask,             XK_0,            tag,            {.ui = ~0} },
 	TAGKEYS(                        XK_1,                            0)

@@ -54,13 +54,14 @@
                                * MAX(0, MIN((y)+(h),(m)->wy+(m)->wh) - MAX((y),(m)->wy)))
 #define ISINC(X)                ((X) > 1000 && (X) < 3000)
 #define ISVISIBLE(C)            ((C->tags & C->mon->tagset[C->mon->seltags] \
-                               && C->vtag == C->mon->selvtag) || C->issticky)
+                               && C->vtags & (1 << C->mon->selvtag)) || C->issticky)
 #define LENGTH(X)               (sizeof X / sizeof X[0])
 #define MOD(N,M)                ((N) % (M) + ((N) % (M) < 0) * (M))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
 #define TAGMASK                 ((1 << LENGTH(tags)) - 1)
+#define VTAGMASK                ((1 << LENGTH(vtags)) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 #define RTEXTW(X)               drw_fontset_getwidth(drw, (X))
 #define STEXTW                  (TEXTW(stext) - lrpad + 2)
@@ -109,7 +110,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh;
 	int bw, oldbw;
-	unsigned int tags, vtag;
+	unsigned int tags, vtags;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate,
 		isfullscreen, isfakefullscreen, isperm, issticky;
 	Client *next;
@@ -254,6 +255,7 @@ static void togglefullscr(const Arg *arg);
 static void toggleperm(const Arg *arg);
 static void togglesticky(const Arg *arg);
 static void toggletag(const Arg *arg);
+static void togglevtag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
@@ -858,7 +860,8 @@ drawbar(Monitor *m)
 	int x, w, tw = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
-	unsigned int i, occ = 0, urg = 0, vtoc[2] = {0}, vturg = 0;
+	unsigned int i, occ = 0, urg = 0, vturg = 0;
+	unsigned int vtoc[2] = {0}, vtcc[2] = {0};
 	Client *c;
 
 	/* draw status first so it can be overdrawn by tags later */
@@ -870,12 +873,12 @@ drawbar(Monitor *m)
 
 	for (c = m->clients; c; c = c->next) {
 		/* match only clients with the current vtag */
-		if (c->vtag == m->selvtag)
+		if (c->vtags & (1 << m->selvtag))
 			occ |= c->tags;
 		else
-			vtoc[c->vtag > m->selvtag] = 1;
+			vtoc[!!(c->vtags >> (m->selvtag + 1))] = 1;
 		if (c->isurgent) {
-			if (c->vtag == m->selvtag)
+			if (c->vtags & (1 << m->selvtag))
 				urg |= c->tags;
 			else
 				vturg = 1;
@@ -895,11 +898,15 @@ drawbar(Monitor *m)
 	w = TEXTW(vtags[m->selvtag]);
 	drw_setscheme(drw, scheme[SchemeTagsNorm]);
 	drw_text(drw, x, 0, w, bh, lrpad / 2, vtags[m->selvtag], vturg);
-	if (vtoc[0])
-		drw_rect(drw, x + boxs, boxs, boxw, boxw, 0, 0);
+	if ((c = m->sel)) {
+		vtcc[0] = c->vtags & ((1 << m->selvtag) - 1);
+		vtcc[1] = !!(c->vtags >> (m->selvtag + 1));
+	}
+	if (vtoc[0] || vtcc[0])
+		drw_rect(drw, x + boxs, boxs, boxw, boxw, vtcc[0], 0);
 	x += w;
-	if (vtoc[1])
-		drw_rect(drw, x - boxw - boxs, boxs, boxw, boxw, 0, 0);
+	if (vtoc[1] || vtcc[1])
+		drw_rect(drw, x - boxw - boxs, boxs, boxw, boxw, vtcc[1], 0);
 
 	w = blw = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeTagsNorm]);
@@ -1226,7 +1233,7 @@ manage(Window w, XWindowAttributes *wa)
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
 	c->cfact = 1.0;
-	c->vtag = selmon->selvtag;
+	c->vtags = 1 << selmon->selvtag;
 
 	updatetitle(c);
 	/* set c->bw before applying rules */
@@ -1687,7 +1694,7 @@ sendmon(Client *c, Monitor *m)
 	detachstack(c);
 	c->mon = m;
 	c->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
-	c->vtag = m->selvtag;
+	c->vtags = 1 << m->selvtag;
 	attach(c);
 	attachstack(c);
 	focus(NULL);
@@ -2185,6 +2192,21 @@ toggletag(const Arg *arg)
 }
 
 void
+togglevtag(const Arg *arg)
+{
+	unsigned int newvtags;
+
+	if (!selmon->sel)
+		return;
+	newvtags = selmon->sel->vtags ^ (arg->ui & VTAGMASK);
+	if (newvtags) {
+		selmon->sel->vtags = newvtags;
+		focus(NULL);
+		arrange(selmon);
+	}
+}
+
+void
 toggleview(const Arg *arg)
 {
 	int i;
@@ -2601,19 +2623,11 @@ viewvtag(const Arg *arg)
 void
 vtag(const Arg *arg)
 {
-	if (!selmon->sel)
-		return;
-	if (ISINC(arg->i)) {
-		selmon->sel->vtag = MOD((int)selmon->sel->vtag + GETINC(arg->i),
-			(int)LENGTH(vtags));
-	} else {
-		if (arg->i < 0 || arg->i >= LENGTH(vtags))
-			return;
-		else
-			selmon->sel->vtag = arg->i;
+	if (selmon->sel && arg->ui & VTAGMASK) {
+		selmon->sel->vtags = arg->ui & VTAGMASK;
+		focus(NULL);
+		arrange(selmon);
 	}
-	focus(NULL);
-	arrange(selmon);
 }
 
 Client *
