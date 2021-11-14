@@ -28,7 +28,7 @@ static const char *colors[][3]      = {
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-static const char *vtags[] = { "Α", "Β", "Γ", "Δ" };
+static const char *vtags[] = { "Α", "Β", "Γ", "Δ", "Ε", "ΣΤ" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -37,7 +37,6 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask  isfloating  isfakefullscreen add2borderw  monitor */
 	{ NULL,       NULL,       NULL,       0,         0,          1,               0,           -1 },
-	{ "csgo_linux64", "csgo_linux64", 0,  0,         0,          0,               0,           -1 },
 };
 
 /* layout(s) */
@@ -47,8 +46,7 @@ static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 
 /* macros for smallmonocle. values at [0, 1.0] (see dwm.c:^smallmonocle) */
-#include <math.h>
-#define SM_X_FACT(mfact) pow(mfact, 0.7)
+#define SM_X_FACT(mfact) powf(mfact, 0.7)
 #define SM_Y_FACT(mfact) (1.0)
 
 enum { Tiled, CenteredMaster, Monocle, SmallMonocle, Floating }; /* layouts by name */
@@ -65,17 +63,20 @@ static const Layout layouts[] = {
 /* key definitions */
 #define MODKEY  Mod4Mask
 #define MODKEY2 Mod1Mask
+#define SPMODS   MODKEY|MODKEY2
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                                KEY,  view,        {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask,                    KEY,  toggleview,  {.ui = 1 << TAG} }, \
-	{ MODKEY|ShiftMask,                      KEY,  tag,         {.ui = 1 << TAG} }, \
-	{ MODKEY|ControlMask|ShiftMask,          KEY,  toggletag,   {.ui = 1 << TAG} },
+	{ MODKEY,                        KEY,  view,        {.ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask,            KEY,  toggleview,  {.ui = 1 << TAG} }, \
+	{ MODKEY|ShiftMask,              KEY,  tag,         {.ui = 1 << TAG} }, \
+	{ MODKEY|ControlMask|ShiftMask,  KEY,  toggletag,   {.ui = 1 << TAG} },
 #define VTAGKEYS(KEY, VTAG) \
-	{ MODKEY|MODKEY2,                        KEY,  viewvtag,    {.i = VTAG} }, \
-	{ MODKEY|MODKEY2|ShiftMask,              KEY,  vtag,        {.ui = 1 << VTAG} }, \
-	{ MODKEY|MODKEY2|ControlMask|ShiftMask,  KEY,  togglevtag,  {.ui = 1 << VTAG} },
+	{ MODKEY,                        KEY,  viewvtag,    {.i = VTAG} }, \
+	{ MODKEY|ShiftMask,              KEY,  vtag,        {.ui = 1 << VTAG} }, \
+	{ MODKEY|ControlMask|ShiftMask,  KEY,  togglevtag,  {.ui = 1 << VTAG} },
 #define TILEKEYS(MOD,KEY,G,M,S) \
 	{ MOD, KEY, setdirs, {.v = (int[]) { INC(G * +1), INC(M * +1), INC(S * +1) } } },
+#define CHVTKEYS(N) \
+	{ Mod1Mask|ControlMask,  XK_F##N,  spawn, SHCMD("doas -n chvt " #N) }
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd)        { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
@@ -152,40 +153,40 @@ static Key keys[] = {
 	TAGKEYS(                        XK_7,                            6)
 	TAGKEYS(                        XK_8,                            7)
 	TAGKEYS(                        XK_9,                            8)
-	VTAGKEYS(                       XK_1,                            0)
-	VTAGKEYS(                       XK_2,                            1)
-	VTAGKEYS(                       XK_3,                            2)
-	VTAGKEYS(                       XK_4,                            3)
-	VTAGKEYS(                       XK_5,                            4)
-	VTAGKEYS(                       XK_6,                            5)
-	VTAGKEYS(                       XK_7,                            6)
-	VTAGKEYS(                       XK_8,                            7)
-	VTAGKEYS(                       XK_9,                            8)
+	VTAGKEYS(                       XK_F1,                           0)
+	VTAGKEYS(                       XK_F2,                           1)
+	VTAGKEYS(                       XK_F3,                           2)
+	VTAGKEYS(                       XK_F4,                           3)
+	VTAGKEYS(                       XK_F5,                           4)
+	VTAGKEYS(                       XK_F6,                           5)
+	VTAGKEYS(                       XK_F7,                           6)
+	VTAGKEYS(                       XK_F8,                           7)
+	VTAGKEYS(                       XK_F9,                           8)
 	{ MODKEY|ShiftMask,             XK_e,            quit,           {0} },
 	{ MODKEY|ShiftMask|ControlMask, XK_e,            quit,           {1} },
 
-	{ MODKEY,                       XK_p,        spawn,  {.v = dmenucmd} },
-	{ MODKEY|MODKEY2,               XK_x,        spawn,  {.v = termcmd} },
-	{ MODKEY,                       XK_Return,   spawn,  {.v = termcmd} },
-	{ MODKEY|ControlMask,           XK_Return,   spawn,  SHCMD("tmux.sh has 2> /dev/null && st tmux.sh attach") },
-	{ MODKEY|MODKEY2|ControlMask,   XK_x,        spawn,  SHCMD("tmux.sh has 2> /dev/null && st tmux.sh attach") },
-	{ MODKEY|MODKEY2,               XK_c,        spawn,  SHCMD("st tmux.sh new $SHELL -ic lf") },
-	{ MODKEY|MODKEY2,               XK_F4,       spawn,  SHCMD("PowerOptions") },
-	{ MODKEY,                       XK_Delete,   spawn,  SHCMD("STATUS_toggle_clear") },
-	{ ShiftMask,                 XK_Caps_Lock,   spawn,  SHCMD_SIG(2, ":") },
-	{ MODKEY,                       XK_Home,     spawn,  SHCMD_SIG(3, "nmcli networking connectivity check > /dev/null 2>&1") },
-	{ MODKEY|ControlMask,           XK_F5,       spawn,  SHCMD_SIG(4, ":") },
+	CHVTKEYS(1), CHVTKEYS(2), CHVTKEYS(3), CHVTKEYS(4), CHVTKEYS(5), CHVTKEYS(6),
+	CHVTKEYS(7), CHVTKEYS(8), CHVTKEYS(9), CHVTKEYS(10), CHVTKEYS(11), CHVTKEYS(12),
+	{ SPMODS,                       XK_p,        spawn,  {.v = dmenucmd} },
+	{ SPMODS,                       XK_x,        spawn,  {.v = termcmd} },
+	{ SPMODS|ControlMask,           XK_x,        spawn,  SHCMD("tmux.sh has 2> /dev/null && st tmux.sh attach") },
+	{ SPMODS,                       XK_c,        spawn,  SHCMD("st tmux.sh new $SHELL -ic lf") },
+	{ SPMODS,                       XK_F4,       spawn,  SHCMD("PowerOptions") },
+	{ SPMODS,                       XK_Delete,   spawn,  SHCMD("STATUS_toggle_clear") },
+	{ ShiftMask,                  XK_Caps_Lock,  spawn,  SHCMD_SIG(2, ":") },
+	{ SPMODS,                       XK_Home,     spawn,  SHCMD_SIG(3, "nmcli networking connectivity check > /dev/null 2>&1") },
+	{ SPMODS|ControlMask,           XK_F5,       spawn,  SHCMD_SIG(4, ":") },
 
-	{ MODKEY,                       XK_F5,       spawn,  SHCMD_SIG(4, MIXER("Capture toggle")) },
-	{ MODKEY|ShiftMask,             XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 15%-"   )) },
-	{ MODKEY,                       XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 5%-"    )) },
-	{ MODKEY|ControlMask,           XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 1%-"    )) },
-	{ MODKEY,                       XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master toggle" )) },
-	{ MODKEY|ShiftMask,             XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master 70%"    )) },
-	{ MODKEY|ControlMask,           XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master 35%"    )) },
-	{ MODKEY|ControlMask,           XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 1%+"    )) },
-	{ MODKEY,                       XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 5%+"    )) },
-	{ MODKEY|ShiftMask,             XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 15%+"   )) },
+	{ SPMODS,                       XK_F5,       spawn,  SHCMD_SIG(4, MIXER("Capture toggle")) },
+	{ SPMODS|ShiftMask,             XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 15%-"   )) },
+	{ SPMODS,                       XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 5%-"    )) },
+	{ SPMODS|ControlMask,           XK_F6,       spawn,  SHCMD_SIG(4, MIXER("Master 1%-"    )) },
+	{ SPMODS,                       XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master toggle" )) },
+	{ SPMODS|ShiftMask,             XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master 70%"    )) },
+	{ SPMODS|ControlMask,           XK_F7,       spawn,  SHCMD_SIG(4, MIXER("Master 35%"    )) },
+	{ SPMODS|ControlMask,           XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 1%+"    )) },
+	{ SPMODS,                       XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 5%+"    )) },
+	{ SPMODS|ShiftMask,             XK_F8,       spawn,  SHCMD_SIG(4, MIXER("Master 15%+"   )) },
 
 #include <X11/XF86keysym.h>
 	{ ShiftMask,        XF86XK_AudioLowerVolume, spawn,  SHCMD_SIG(4, MIXER("Master 15%-"   )) },
@@ -198,45 +199,50 @@ static Key keys[] = {
 	{ 0,                XF86XK_AudioRaiseVolume, spawn,  SHCMD_SIG(4, MIXER("Master 5%+"    )) },
 	{ ShiftMask,        XF86XK_AudioRaiseVolume, spawn,  SHCMD_SIG(4, MIXER("Master 15%+"   )) },
 
-	{ MODKEY|ControlMask,           XK_F10,      spawn,  SHCMD_SIG(1, PLAYER("pause-after -f 1")) },
-	{ MODKEY|ShiftMask|ControlMask, XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("previous"     )) },
-	{ MODKEY|ShiftMask,             XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 60" )) },
-	{ MODKEY,                       XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 5"  )) },
-	{ MODKEY|ControlMask,           XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 1"  )) },
-	{ MODKEY,                       XK_F10,      spawn,  SHCMD_SIG(1, PLAYER("play-pause"   )) },
-	{ MODKEY|ControlMask,           XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 1"  )) },
-	{ MODKEY,                       XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 5"  )) },
-	{ MODKEY|ShiftMask,             XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 60" )) },
-	{ MODKEY|ShiftMask|ControlMask, XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("next"         )) },
-	{ MODKEY|ControlMask,      XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.01"  )) },
-	{ MODKEY|ShiftMask,        XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.05"  )) },
-	{ MODKEY,                  XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.1"   )) },
-	{ MODKEY,                  XK_equal,         spawn,  SHCMD_SIG(1, PLAYER("speed  1"     )) },
-	{ MODKEY,                  XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.1"   )) },
-	{ MODKEY|ShiftMask,        XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.05"  )) },
-	{ MODKEY|ControlMask,      XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.01"  )) },
-	{ MODKEY,                       XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("loop- 1"      )) },
-	{ MODKEY|ControlMask,           XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("loop+ 1"      )) },
-	{ MODKEY|ShiftMask|ControlMask, XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("loop-playlist")) },
-	{ MODKEY|ShiftMask,             XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("positionm"    )) },
-	{ MODKEY|ShiftMask,             XK_equal,    spawn,  SHCMD_SIG(1, PLAYER("quit-wl"      )) },
-	{ MODKEY|ShiftMask|ControlMask, XK_equal,    spawn,  SHCMD_SIG(1, PLAYER("quit"         )) },
-	{ MODKEY,                       XK_v,        spawn,  SHCMD("clipsavedshow -l 20") },
-	{ MODKEY|MODKEY2,               XK_v,        spawn,  SHCMD("clipsavedshow --rm -l 20") },
-	{ MODKEY|MODKEY2,               XK_f,        spawn,  SHCMD("gepasl ~/Documents/havsepas dmenu -i -l 20"), },
-	{ MODKEY|MODKEY2,               XK_m,        spawn,  SHCMD("st Music.sh") },
-	{ MODKEY|MODKEY2,               XK_h,        spawn,  SHCMD("st htop") },
-	{ MODKEY|MODKEY2,               XK_g,        spawn,  SHCMD("gsimplecal") },
-	{ MODKEY|MODKEY2,               XK_s,        spawn,  SHCMD("firefox.sh 0") },
-	{ MODKEY|MODKEY2,               XK_a,        spawn,  SHCMD("firefox.sh 1") },
-	{ MODKEY|MODKEY2,               XK_d,        spawn,  SHCMD("firefox.sh p") },
-	{ MODKEY|MODKEY2|ControlMask,   XK_s,        spawn,  SHCMD("firefox.sh 2") },
-	{ MODKEY|MODKEY2|ControlMask,   XK_d,        spawn,  SHCMD("firefox.sh 3") },
-	{ MODKEY|MODKEY2|ControlMask,   XK_a,        spawn,  SHCMD("firefox.sh -P") },
-	{ MODKEY,                       XK_Print,    spawn,  SHCMD("PrintScreen ~/Screenshots") },
-	{ MODKEY|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w ~/Screenshots") },
-	{ MODKEY|MODKEY2,               XK_p,        spawn,  SHCMD("xfce4-appfinder") },
-	{ MODKEY|ControlMask,           XK_c,        spawn,  SHCMD("xcalib -o 1 -i -a") },
+	{ SPMODS|ControlMask,           XK_F10,      spawn,  SHCMD_SIG(1, PLAYER("pause-after -f 1")) },
+	{ SPMODS|ShiftMask|ControlMask, XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("previous"     )) },
+	{ SPMODS|ShiftMask,             XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 60" )) },
+	{ SPMODS,                       XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 5"  )) },
+	{ SPMODS|ControlMask,           XK_F9,       spawn,  SHCMD_SIG(1, PLAYER("position- 1"  )) },
+	{ SPMODS,                       XK_F10,      spawn,  SHCMD_SIG(1, PLAYER("play-pause"   )) },
+	{ SPMODS|ControlMask,           XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 1"  )) },
+	{ SPMODS,                       XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 5"  )) },
+	{ SPMODS|ShiftMask,             XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("position+ 60" )) },
+	{ SPMODS|ShiftMask|ControlMask, XK_F11,      spawn,  SHCMD_SIG(1, PLAYER("next"         )) },
+	{ SPMODS|ControlMask,      XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.01"  )) },
+	{ SPMODS|ShiftMask,        XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.05"  )) },
+	{ SPMODS,                  XK_bracketleft,   spawn,  SHCMD_SIG(1, PLAYER("speed- 0.1"   )) },
+	{ SPMODS,                  XK_equal,         spawn,  SHCMD_SIG(1, PLAYER("speed  1"     )) },
+	{ SPMODS,                  XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.1"   )) },
+	{ SPMODS|ShiftMask,        XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.05"  )) },
+	{ SPMODS|ControlMask,      XK_bracketright,  spawn,  SHCMD_SIG(1, PLAYER("speed+ 0.01"  )) },
+	{ SPMODS,                       XK_F12,      spawn,  SHCMD_SIG(1, PLAYER("loop- 1"      )) },
+	{ SPMODS|ControlMask,           XK_F12,      spawn,  SHCMD_SIG(1, PLAYER("loop+ 1"      )) },
+	{ SPMODS|ShiftMask|ControlMask, XK_F12,      spawn,  SHCMD_SIG(1, PLAYER("loop-playlist")) },
+	{ SPMODS|ShiftMask,             XK_equal,    spawn,  SHCMD_SIG(1, PLAYER("quit-wl"      )) },
+	{ SPMODS|ShiftMask|ControlMask, XK_equal,    spawn,  SHCMD_SIG(1, PLAYER("quit"         )) },
+	{ SPMODS,                       XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("positionm"    )) },
+	{ SPMODS|ControlMask,           XK_minus,    spawn,  SHCMD_SIG(1, PLAYER("speedm"       )) },
+	{ SPMODS,                       XK_v,        spawn,  SHCMD("clipsavedshow -l 20") },
+	{ SPMODS|ControlMask,           XK_v,        spawn,  SHCMD("clipsavedshow --rm -l 20") },
+	{ SPMODS,                       XK_f,        spawn,  SHCMD("gepasl ~/Documents/havsepas dmenu -i -l 20"), },
+	{ SPMODS,                       XK_m,        spawn,  SHCMD("st Music.sh") },
+	{ SPMODS,                       XK_h,        spawn,  SHCMD("st htop") },
+	{ SPMODS,                       XK_g,        spawn,  SHCMD("gsimplecal") },
+	{ SPMODS,                       XK_s,        spawn,  SHCMD("firefox.sh 0") },
+	{ SPMODS,                       XK_a,        spawn,  SHCMD("firefox.sh 1") },
+	{ SPMODS,                       XK_d,        spawn,  SHCMD("firefox.sh p") },
+	{ SPMODS|ControlMask,           XK_s,        spawn,  SHCMD("firefox.sh 2") },
+	{ SPMODS|ControlMask,           XK_d,        spawn,  SHCMD("firefox.sh 3") },
+	{ SPMODS|ControlMask,           XK_a,        spawn,  SHCMD("firefox.sh -P") },
+	{ SPMODS,                       XK_Print,    spawn,  SHCMD("PrintScreen ~/Screenshots") },
+	{ SPMODS|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w ~/Screenshots") },
+	{ SPMODS,                       XK_p,        spawn,  SHCMD("xfce4-appfinder") },
+	{ SPMODS|ControlMask,           XK_c,        spawn,  SHCMD("xcalib -o 1 -i -a") },
+	{ SPMODS,                       XK_space,    spawn,  SHCMD("dunstctl close") },
+	{ SPMODS|ShiftMask,             XK_space,    spawn,  SHCMD("dunstctl close-all") },
+	{ SPMODS,                       XK_grave,    spawn,  SHCMD("dunstctl history-pop") },
+	{ SPMODS|ShiftMask,             XK_grave,    spawn,  SHCMD("dunstctl context") },
 };
 
 /* not defined in included header files */
