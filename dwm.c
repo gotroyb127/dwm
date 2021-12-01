@@ -22,7 +22,6 @@
  */
 #include <errno.h>
 #include <locale.h>
-#include <math.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -535,10 +534,9 @@ buttonpress(XEvent *e)
 void
 centeredmaster(Monitor *m)
 {
-	unsigned int i, updatesymb;
+	unsigned int i;
 	Client *c;
-	Area *ma = m->pertag->areas[m->pertag->curtag] + 1,
-		*sal = ma + 1, tmp = *sal, *sar = &tmp;
+	Area *ma = m->pertag->areas[m->pertag->curtag] + 1, *sal = ma + 1, sar[1];
 
 	ma->fact = sal->fact = sar->fact = 0;
 	ma->cx = ma->cy = sar->cx = sar->cy = sal->cx = sal->cy = 0;
@@ -546,34 +544,32 @@ centeredmaster(Monitor *m)
 	for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
 		if (i < m->nmaster)
 			ma->fact += c->cfact;
-		else if ( (i - m->nmaster) % 2)
+		else if ((i - m->nmaster) % 2)
 			sal->fact += c->cfact;
 		else
 			sar->fact += c->cfact;
 	}
 
-	updatesymb = 1;
-	if (i == 1) {
+	if (i == 1)
 		smallmonocle(m);
-	} else if (i == m->nmaster + 1) {
+	else if (i == m->nmaster + 1)
 		tile(m);
-	} else {
-		updatesymb = 0;
-	}
-	if (updatesymb) {
-		/* output ltsymbol in "[%s]" format */
-		ltsymbf(m, "[%s]");
-		return;
-	}
+	else
+		goto cont;
+	ltsymbf(m, "[%s]");
+	return;
+cont:
 	snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%c%c]",
 		(char[]){ '-', '|' }[ma->dir],
 		(char[]){ '-', '|' }[sal->dir]);
 
-	ma->x = m->ww * ( (1 - m->mfact) / 2) , ma->fx = m->ww * (1 + m->mfact) / 2;
-	ma->y = sal->y = sar->y = 0, ma->fy = sal->fy = sar->fy = m->wh;
+	ma->x = m->ww * (1 - m->mfact) / 2;
+	ma->fx = m->ww * (1 + m->mfact) / 2;
+	ma->y = sal->y = sar->y = 0;
+	ma->fy = sal->fy = sar->fy = m->wh;
 	sal->x = 0;
-	sal->fx = ma->x;
-	sar->x = ma->fx;
+	sal->fx = ma->x - 1;
+	sar->x = ma->fx + 1;
 	sar->fx = m->ww;
 	for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
 		if (i < m->nmaster)
@@ -1208,10 +1204,10 @@ killclient(const Arg *arg)
 void
 ltsymbf(Monitor *m, const char *fmt)
 {
-	char symb[sizeof m->ltsymbol - 2];
+	char symb[sizeof m->ltsymbol];
 
-	strncpy(symb, m->ltsymbol, sizeof symb);
-	snprintf(m->ltsymbol, sizeof symb + 2, fmt, symb);
+	strcpy(symb, m->ltsymbol);
+	snprintf(m->ltsymbol, sizeof m->ltsymbol, fmt, symb);
 }
 
 void
@@ -1306,18 +1302,13 @@ maprequest(XEvent *e)
 void
 monocle(Monitor *m)
 {
-	unsigned int n = 0;
+	unsigned int n;
 	Client *c;
 
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next))
-		if (ISVISIBLE(c))
-			n++;
-	if (n > 0) /* override layout symbol */
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++)
+		resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
+	if (n)
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "[%d]", n);
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-		if (ISVISIBLE(c))
-			resize(c, m->wx, m->wy, m->ww - 2 * c->bw, m->wh - 2 * c->bw, 0);
-	}
 }
 
 void
@@ -1984,28 +1975,15 @@ sigterm(int unused)
 void
 smallmonocle(Monitor *m)
 {
-	unsigned int n = 0, x, y, w, h;
-	float fx, fy;
+	unsigned int n;
 	Client *c;
 
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-		if (ISVISIBLE(c))
-			n++;
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+		resize(c, m->wx + m->ww * (1 - m->mfact) / 2, m->wy,
+			m->ww * m->mfact - (2*c->bw), m->wh - (2*c->bw), 0);
 	}
-	if (n > 0) /* override layout symbol */
+	if (n)
 		snprintf(m->ltsymbol, sizeof m->ltsymbol, "<%d>", n);
-
-	fx = SM_X_FACT(m->mfact);
-	fy = SM_Y_FACT(m->mfact);
-	w = m->ww * fx;
-	h = m->wh * fy;
-	x = m->wx + m->ww * ((1 - fx) / 2);
-	y = m->wy + m->wh * ((1 - fy) / 2);
-
-	for (c = nexttiled(m->clients); c; c = nexttiled(c->next)) {
-		if (ISVISIBLE(c))
-			resize(c, x, y, w - (2*c->bw), h - (2*c->bw), 0);
-	}
 }
 
 void
@@ -2052,13 +2030,8 @@ tile(Monitor *m)
 	Area *ga = m->pertag->areas[m->pertag->curtag], *ma = ga + 1, *sa = ga + 2;
 	float f;
 
-	/* print layout symbols */
-	snprintf(m->ltsymbol, sizeof m->ltsymbol, "%c%c%c",
-		(char[]){ '<', '^', '>', 'v' }[ga->dir],
-		(char[]){ '-', '|' }[ma->dir],
-		(char[]){ '-', '|' }[sa->dir]);
-	/* calculate number of clients */
-	for (ma->fact = sa->fact = n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+	ma->fact = sa->fact = 0;
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
 		if (n < m->nmaster)
 			ma->fact += c->cfact;
 		else
@@ -2071,19 +2044,36 @@ tile(Monitor *m)
 		ltsymbf(m, "|%s|");
 		return;
 	}
+	snprintf(m->ltsymbol, sizeof m->ltsymbol, "%c%c%c",
+		(char[]){ '<', '^', '>', 'v' }[ga->dir],
+		(char[]){ '-', '|' }[ma->dir],
+		(char[]){ '-', '|' }[sa->dir]);
 
 	ma_n = MIN(n, m->nmaster);
 	sa_n = n - ma_n;
-	/* calculate area rectangles */
 	f = ma_n == 0 ? 0 : (sa_n == 0 ? 1 : m->mfact);
 	if (ga->dir == DirHor || ga->dir == DirRotHor) {
-		ms = f * m->ww; ss = m->ww - ms;
-		ma->x = ga->dir == DirHor ? 0 : ss; ma->y = 0; ma->fx = ma->x + ms; ma->fy = m->wh;
-		sa->x = ga->dir == DirHor ? ms : 0; sa->y = 0; sa->fx = sa->x + ss; sa->fy = m->wh;
+		ms = f * m->ww;
+		ss = m->ww - ms;
+		ma->x = ga->dir == DirHor ? 0 : ss;
+		ma->y = 0;
+		ma->fx = ma->x + ms;
+		ma->fy = m->wh;
+		sa->x = ga->dir == DirHor ? ms : 0;
+		sa->y = 0;
+		sa->fx = sa->x + ss;
+		sa->fy = m->wh;
 	} else {
-		ms = f * m->wh; ss = m->wh - ms;
-		ma->x = 0; ma->y = ga->dir == DirVer ? 0 : ss; ma->fx = m->ww; ma->fy = ma->y + ms;
-		sa->x = 0; sa->y = ga->dir == DirVer ? ms : 0; sa->fx = m->ww; sa->fy = sa->y + ss;
+		ms = f * m->wh;
+		ss = m->wh - ms;
+		ma->x = 0;
+		ma->y = ga->dir == DirVer ? 0 : ss;
+		ma->fx = m->ww;
+		ma->fy = ma->y + ms;
+		sa->x = 0;
+		sa->y = ga->dir == DirVer ? ms : 0;
+		sa->fx = m->ww;
+		sa->fy = sa->y + ss;
 	}
 	/* tile clients */
 	ma->cx = ma->cy = sa->cx = sa->cy = 0;

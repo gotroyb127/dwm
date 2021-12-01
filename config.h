@@ -45,10 +45,6 @@ static const int dirs[3]     = { DirRotHor, DirVer, DirVer }; /* tiling dirs */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 
-/* macros for smallmonocle. values at [0, 1.0] (see dwm.c:^smallmonocle) */
-#define SM_X_FACT(mfact) powf(mfact, 0.7)
-#define SM_Y_FACT(mfact) (1.0)
-
 enum { Tiled, CenteredMaster, Monocle, SmallMonocle, Floating }; /* layouts by name */
 
 static const Layout layouts[] = {
