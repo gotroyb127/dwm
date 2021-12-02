@@ -43,11 +43,6 @@ static const int dirs[3]     = { DirRotHor, DirVer, DirVer }; /* tiling dirs */
 static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 1;    /* 1 means respect size hints in tiled resizals */
 
-/* macros for smallmonocle. values at [0, 1.0] (see dwm.c:^smallmonocle) */
-#include <math.h>
-#define SM_X_FACT(mfact) pow(mfact, 0.7)
-#define SM_Y_FACT(mfact) (1.0)
-
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },    /* first entry is default */
