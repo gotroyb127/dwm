@@ -88,8 +88,9 @@ typedef union {
 
 typedef struct {
 	int dir;
-	unsigned int xf, xl, yf, yl, cx, cy; /* first, last, current */
+	unsigned int xf, xl, yf, yl; /* first, last */
 	unsigned int i, n;
+	unsigned int dx, dy;
 	float fact;
 } Area;
 
@@ -542,7 +543,7 @@ centeredmaster(Monitor *m)
 
 	ma.dir = m->ptag->dirs[m->ptag->curtag][1];
 	sl.dir = sr.dir = m->ptag->dirs[m->ptag->curtag][2];
-	for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+	for (i = 0, c = nexttiled(m->clients); c; i++, c = nexttiled(c->next)) {
 		a = i < m->nmaster ? &ma : (i - m->nmaster) % 2 ? &sl : &sr;
 		a->fact += c->cfact;
 		a->n++;
@@ -561,15 +562,15 @@ cont:
 		(char[]){ '-', '|' }[ma.dir],
 		(char[]){ '-', '|' }[sl.dir]);
 
-	ma.xf = m->ww * (1 - m->mfact) / 2;
+	ma.xf = m->wx + m->ww * (1.f - m->mfact) / 2.f;
 	ma.xl = ma.xf + m->ww * m->mfact;
-	ma.yf = sl.yf = sr.yf = 0;
+	ma.yf = sl.yf = sr.yf = m->wy;
 	ma.yl = sl.yl = sr.yl = m->wh;
-	sl.xf = 0;
+	sl.xf = m->wx;
 	sl.xl = ma.xf;
 	sr.xf = ma.xl;
 	sr.xl = m->ww;
-	for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+	for (i = 0, c = nexttiled(m->clients); c; i++, c = nexttiled(c->next)) {
 		a = i < m->nmaster ? &ma : (i - m->nmaster) % 2 ? &sl : &sr;
 		tileclient(m, a, c);
 	}
@@ -2019,20 +2020,20 @@ void
 tile(Monitor *m)
 {
 	int *dirs;
-	unsigned int i, n, ms, ss;
+	unsigned int i, n, as;
 	float mf;
 	Client *c;
-	Area ma = {0}, sa = {0}, *a;
+	Area ma = {0}, sa = {0}, *a, *na;
 
 	dirs = m->ptag->dirs[m->ptag->curtag];
 	ma.dir = dirs[1];
 	sa.dir = dirs[2];
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++) {
+	for (n = 0, c = nexttiled(m->clients); c; n++, c = nexttiled(c->next)) {
 		a = n < m->nmaster ? &ma : &sa;
 		a->fact += c->cfact;
 		a->n++;
 	}
-	if (n == 0)
+	if (!n)
 		return;
 	if (n == 1) {
 		smallmonocle(m);
@@ -2044,25 +2045,29 @@ tile(Monitor *m)
 		(char[]){ '-', '|' }[ma.dir],
 		(char[]){ '-', '|' }[sa.dir]);
 
-	mf = ma.n == 0 ? 0.f : sa.n == 0 ? 1.f : m->mfact;
+	mf = !ma.n ? 0.f : !sa.n ? 1.f : m->mfact;
 	if (dirs[0] == DirHor || dirs[0] == DirRotHor) {
-		ms = mf * m->ww;
-		ss = m->ww - ms;
-		ma.yf = sa.yf = 0;
-		ma.yl = sa.yl = m->wh;
-		ma.xf = dirs[0] == DirHor ? 0 : ss;
-		ma.xl = ma.xf + ms;
-		sa.xf = dirs[0] == DirHor ? ms : 0;
-		sa.xl = sa.xf + ss;
+		ma.yf = sa.yf = m->wy;
+		ma.yl = sa.yl = m->wy + m->wh;
+		if (dirs[0] == DirHor)
+			a = &ma, na = &sa, as = m->ww * mf;
+		else
+			a = &sa, na = &ma, as = m->ww * (1 - mf);
+		a->xf = m->wx;
+		a->xl = a->xf + as;
+		na->xf = a->xl;
+		na->xl = m->wx + m->ww;
 	} else {
-		ms = mf * m->wh;
-		ss = m->wh - ms;
-		ma.xf = sa.xf = 0;
-		ma.xl = sa.xl = m->ww;
-		ma.yf = dirs[0] == DirVer ? 0 : ss;
-		ma.yl = ma.yf + ms;
-		sa.yf = dirs[0] == DirVer ? ms : 0;
-		sa.yl = sa.yf + ss;
+		ma.xf = sa.xf = m->wx;
+		ma.xl = sa.xl = m->wx + m->ww;
+		if (dirs[0] == DirVer)
+			a = &ma, na = &sa, as = m->wh * mf;
+		else
+			a = &sa, na = &ma, as = m->wh * (1 - mf);
+		a->yf = m->wy;
+		a->yl = m->wy + as;
+		na->yf = a->yl;
+		na->yl = m->wy + m->wh;
 	}
 	for (i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
 		a = i < ma.n ? &ma : &sa;
@@ -2076,26 +2081,26 @@ tileclient(Monitor *m, Area *a, Client *c)
 	unsigned int w, h, dx, dy;
 
 	if (a->dir == DirHor) {
-		if (++a->i == a->n)
-			w = (a->xl - a->xf) - a->cx;
+		if (++a->i < a->n)
+			w = (a->xl - a->xf) * (c->cfact / a->fact);
 		else
-			w = (a->xl - a->xl) * (c->cfact / a->fact);
+			w = (a->xl - a->xf) - a->dx;
 		h = a->yl - a->yf;
 		dx = w;
 		dy = 0;
 	} else {
-		if (++a->i == a->n)
-			h = (a->yl - a->yf) - a->cy;
-		else
+		if (++a->i < a->n)
 			h = (a->yl - a->yf) * (c->cfact / a->fact);
+		else
+			h = (a->yl - a->yf) - a->dy;
 		w = a->xl - a->xf;
 		dx = 0;
 		dy = h;
 	}
-	resize(c, m->wx + a->xf + a->cx, m->wy + a->yf + a->cy,
+	resize(c, a->xf + a->dx, a->yf + a->dy,
 		w - (2*c->bw), h - (2*c->bw), 0);
-	a->cx += dx;
-	a->cy += dy;
+	a->dx += dx;
+	a->dy += dy;
 }
 
 void
