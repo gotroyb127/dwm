@@ -234,7 +234,7 @@ static Key keys[] = {
 	{ SPMODS|ControlMask,           XK_a,        spawn,  SHCMD("firefox.sh -P") },
 	{ MODKEY,                       XK_Print,    spawn,  SHCMD("PrintScreen ~/Screenshots") },
 	{ MODKEY|ControlMask,           XK_Print,    spawn,  SHCMD("PrintScreen -w ~/Screenshots") },
-	{ SPMODS,                       XK_p,        spawn,  SHCMD("xfce4-appfinder") },
+	{ SPMODS|ControlMask,           XK_p,        spawn,  SHCMD("xfce4-appfinder") },
 	{ SPMODS|ControlMask,           XK_c,        spawn,  SHCMD("xcalib -o 1 -i -a") },
 	{ SPMODS,                       XK_space,    spawn,  SHCMD("dunstctl close") },
 	{ SPMODS|ShiftMask,             XK_space,    spawn,  SHCMD("dunstctl close-all") },
