@@ -5,8 +5,9 @@ static const unsigned int borderpx  = 3;        /* border pixel of windows */
 static const unsigned int snap      = 15;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 0;        /* 0 means bottom bar */
-static const char *fonts[]          = { "FiraCodeNerdFontMono:style=Retina:"
-	"pixelsize=13.35:antialias=true:autohint=true" };
+static const char *fonts[]          = {
+	"Hack:style=Regular:pixelsize=13.5:antialias=true:autohint=false"
+};
 static const char col_gray0[]       = "#000000";
 static const char col_gray1[]       = "#111111";
 static const char col_gray2[]       = "#444444";
@@ -29,7 +30,6 @@ static const char *colors[][3]      = {
 
 /* tagging */
 static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-static const char *vtags[] = { "Α", "Β", "Γ", "Δ", "Ε", "ΣΤ" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -67,7 +67,8 @@ static const Layout layouts[] = {
 	{ MODKEY|ShiftMask,              KEY,  tag,         {.ui = 1 << TAG} }, \
 	{ MODKEY|ControlMask|ShiftMask,  KEY,  toggletag,   {.ui = 1 << TAG} },
 #define VTAGKEYS(KEY, VTAG) \
-	{ MODKEY,                        KEY,  viewvtag,    {.i = VTAG} }, \
+	{ MODKEY,                        KEY,  vview,       {.ui = 1 << VTAG} }, \
+	{ MODKEY|ControlMask,            KEY,  togglevview, {.ui = 1 << VTAG} }, \
 	{ MODKEY|ShiftMask,              KEY,  vtag,        {.ui = 1 << VTAG} }, \
 	{ MODKEY|ControlMask|ShiftMask,  KEY,  togglevtag,  {.ui = 1 << VTAG} },
 #define TILEKEYS(MOD,KEY,G,M,S) \
@@ -91,7 +92,6 @@ static const char *statuscmd[] = { "STATUS_button", statusbtn, statusblkn, NULL 
 
 static Key keys[] = {
 	/* modifier                     key        function        argument */
-
 	{ MODKEY,                       XK_j,            focusstack,     {.i = +1} },
 	{ MODKEY,                       XK_k,            focusstack,     {.i = -1} },
 	{ MODKEY|ShiftMask,             XK_j,            pushdown,       {0} },
@@ -112,6 +112,7 @@ static Key keys[] = {
 	{ MODKEY,                       XK_z,            zoom,           {0} },
 	{ MODKEY|ShiftMask,             XK_Return,       zoom,           {0} },
 	{ MODKEY,                       XK_Tab,          view,           {0} },
+	{ MODKEY|ShiftMask,             XK_Tab,          vview,          {0} },
 	{ MODKEY,                       XK_q,            killclient,     {0} },
 	{ MODKEY,                       XK_space,        setlayout,      {0} },
 	{ MODKEY,                       XK_x,            setlayout,      {.v = &layouts[Tiled]} },
@@ -137,10 +138,10 @@ static Key keys[] = {
 	{ MODKEY,                       XK_period,       focusmon,       {.i = +1} },
 	{ MODKEY|ShiftMask,             XK_comma,        tagmon,         {.i = -1} },
 	{ MODKEY|ShiftMask,             XK_period,       tagmon,         {.i = +1} },
-	{ MODKEY|ControlMask,           XK_comma,        viewvtag,       {.i = INC(-1)} },
-	{ MODKEY|ControlMask,           XK_period,       viewvtag,       {.i = INC(+1)} },
 	{ MODKEY,                       XK_0,            view,           {.ui = ~0} },
 	{ MODKEY|ShiftMask,             XK_0,            tag,            {.ui = ~0} },
+	{ MODKEY,                       XK_F10,          vview,          {.ui = ~0} },
+	{ MODKEY|ShiftMask,             XK_F10,          vtag,           {.ui = ~0} },
 	TAGKEYS(                        XK_1,                            0)
 	TAGKEYS(                        XK_2,                            1)
 	TAGKEYS(                        XK_3,                            2)
@@ -247,7 +248,7 @@ static Key keys[] = {
 #define Button9 9
 
 /* button definitions */
-/* click can be ClkTagBar, ClkVTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
+/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static Button buttons[] = {
 	/* click          event mask        button          function        argument */
 	{ ClkLtSymbol,    MODKEY,           Button1,  setlayout,      {0} },
@@ -281,11 +282,9 @@ static Button buttons[] = {
 	{ ClkClientWin,   MODKEY,           Button5,  focusstack,     {.i = -1} },
 	{ ClkClientWin,   MODKEY|ShiftMask, Button4,  pushup,         {0} },
 	{ ClkClientWin,   MODKEY|ShiftMask, Button5,  pushdown,       {0} },
-	{ ClkVTagBar,     0,                Button1,  viewvtag,       {.i = 0} } ,
-	{ ClkVTagBar,     0,                Button3,  viewvtag,       {.i = 1} },
-	{ ClkVTagBar,     0,                Button2,  viewvtag,       {.i = 2} },
-	{ ClkVTagBar,     0,                Button4,  viewvtag,       {.i = INC(-1)} } ,
-	{ ClkVTagBar,     0,                Button5,  viewvtag,       {.i = INC(+1)} },
+	{ ClkTagBar,      0,                Button2,  vview,          {0} },
+	{ ClkTagBar,      MODKEY|ShiftMask, Button1,  tag,            {0} },
+	{ ClkTagBar,      MODKEY|ShiftMask, Button3,  togglevtag,     {0} },
 	{ ClkTagBar,      0,                Button1,  view,           {0} },
 	{ ClkTagBar,      0,                Button3,  toggleview,     {0} },
 	{ ClkTagBar,      MODKEY,           Button1,  tag,            {0} },
